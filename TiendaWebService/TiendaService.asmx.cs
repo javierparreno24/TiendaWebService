@@ -167,7 +167,28 @@ namespace TiendaWebService
             }
             return dt;
         }
-
+        
+        [WebMethod]
+        public string EliminarProducto(int id)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connString))
+                {
+                    string query = "DELETE FROM Productos WHERE ProductoID=@id";
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@id", id);
+                    conn.Open();
+                    int filas = cmd.ExecuteNonQuery();
+                    return filas > 0 ? "Producto eliminado con éxito." : "Error: El ID de producto no existe.";
+                }
+            }
+            catch (Exception ex)
+            {
+                RegistrarLogError("EliminarProducto", ex.Message);
+                return "Error al eliminar: " + ex.Message;
+            }
+        }
         // ==========================================
         // SECCIÓN 3: PEDIDOS Y LOGS 
         // ==========================================
@@ -214,7 +235,40 @@ namespace TiendaWebService
                 }
             }
         }
+        [WebMethod]
+        public string ActualizarEstadoPedido(int pedidoId, string nuevoEstado)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connString))
+                {
+                    string query = "UPDATE Pedidos SET Estado=@e WHERE PedidoID=@id";
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@e", nuevoEstado);
+                    cmd.Parameters.AddWithValue("@id", pedidoId);
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() > 0 ? "Estado actualizado a: " + nuevoEstado : "Pedido no encontrado.";
+                }
+            }
+            catch (Exception ex)
+            {
+                RegistrarLogError("ActualizarEstadoPedido", ex.Message);
+                return "Error: " + ex.Message;
+            }
+        }
 
+        [WebMethod]
+        public DataTable ObtenerCategorias()
+        {
+            DataTable dt = new DataTable("Categorias");
+            using (MySqlConnection conn = new MySqlConnection(connString))
+            {
+                string query = "SELECT CategoriaID, NombreCategoria FROM Categorias";
+                MySqlDataAdapter da = new MySqlDataAdapter(query, conn);
+                da.Fill(dt);
+            }
+            return dt;
+        }
         [WebMethod]
         public DataTable HistorialCompras(int usuarioId)
         {
